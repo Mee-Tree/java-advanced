@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -13,13 +14,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 public class HelloUDPServer implements HelloServer {
+    private static final Charset CHARSET = StandardCharsets.UTF_8;
+
     private ExecutorService pool;
     private DatagramSocket socket;
 
     public static void main(final String[] args) {
         final Arguments arguments = new Arguments(args);
         if (arguments.size() != 2) {
-            System.err.println("hui");
+            System.err.println("Usage:");
+            System.err.printf("\t%s port threads",
+                    HelloUDPServer.class.getName());
+            System.err.println();
             return;
         }
 
@@ -30,7 +36,7 @@ public class HelloUDPServer implements HelloServer {
             new HelloUDPServer()
                     .start(port, threads);
         } catch (final NumberFormatException e) {
-            System.err.println("jopa");
+            System.err.println("Couldn't parse integer argument: " + e.getMessage());
         }
     }
 
@@ -39,9 +45,10 @@ public class HelloUDPServer implements HelloServer {
         this.pool = Executors.newFixedThreadPool(threads);
         try {
             this.socket = new DatagramSocket(port);
-            IntStream.range(0, threads).forEach(i -> pool.submit(this::receive));
+            IntStream.range(0, threads).forEach(i ->
+                    pool.submit(this::receive));
         } catch (final SocketException e) {
-            System.err.println("anal");
+            System.err.println("Couldn't create socket: " + e.getMessage());
         }
     }
 
@@ -55,16 +62,16 @@ public class HelloUDPServer implements HelloServer {
                 try {
                     socket.receive(packet);
                     final String request = new String(
-                            packet.getData(), packet.getOffset(), packet.getLength(), StandardCharsets.UTF_8);
+                            packet.getData(), packet.getOffset(), packet.getLength(), CHARSET);
                     final String response = String.format(responseFormat, request);
-                    packet.setData(response.getBytes(StandardCharsets.UTF_8));
+                    packet.setData(response.getBytes(CHARSET));
                     socket.send(packet);
                 } catch (final IOException e) {
-                    System.err.println("pp");
+                    System.err.println("An I/O error has occurred during data transfer: " + e.getMessage());
                 }
             }
         } catch (final SocketException e) {
-            System.err.println("penis");
+            System.err.println("Couldn't retrieve buffer size for the packet: " + e.getMessage());
         }
 
     }
