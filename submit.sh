@@ -12,8 +12,11 @@ rsync -av --exclude='*.iml' \
 
 pushd ../java-advanced || exit
 
-git add ./java-solutions/info/kgeorgiy/ja/polchinsky/"$1"/*
+git add -f .
+git status
 git commit -m "Add $1 [Automated commit]"
+#git commit -m "Suppress unchecked warning"
+#git commit -m "Update $1"
 git push origin master
 
 popd || exit

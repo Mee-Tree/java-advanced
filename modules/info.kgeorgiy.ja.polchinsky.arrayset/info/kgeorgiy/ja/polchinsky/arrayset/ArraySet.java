@@ -51,8 +51,8 @@ public class ArraySet<E> extends AbstractSet<E> implements NavigableSet<E> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean contains(Object obj) {
-        //noinspection unchecked
         return indexOf((E) obj) >= 0;
     }
 
